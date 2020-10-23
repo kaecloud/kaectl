@@ -24,7 +24,7 @@ func NewCmdJob(f *cmdutil.Factory) *cobra.Command {
 		Annotations: map[string]string{
 			"IsCore": "true",
 			"help:arguments": heredoc.Doc(`
-				A repository can be supplied as an argument in any of the following formats:
+				A job name should be supplied to command
 			"
 			`),
 		},
