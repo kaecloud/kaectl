@@ -153,28 +153,33 @@ func (c *JobClient) Logs(name string, podname string, cluster string, follow boo
 		for {
 			msgType, msgBytes, err := ws.ReadMessage()
 			if err != nil {
-				if websocket.IsCloseError(err) {
+				if websocket.IsCloseError(err, websocket.CloseNormalClosure) {
 					return
 				}
 				res <- err
 				return
 			}
-			if msgType != websocket.TextMessage {
-				continue
-			}
-			var data struct {
-				Data string `json:"data"`
-				Error string `json:"error"`
-			}
-			err = json.Unmarshal(msgBytes, &data)
-			if err != nil {
-				res <- err
-				return
-			}
-			if data.Error != "" {
-				res <- errors.New(data.Error)
-			} else {
-				res <- data.Data
+			switch msgType {
+			case websocket.PingMessage:
+				if err := ws.WriteMessage(websocket.PongMessage, []byte("PP")); err != nil {
+					res <- err
+					return
+				}
+			case websocket.TextMessage:
+				var data struct {
+					Data string `json:"data"`
+					Error string `json:"error"`
+				}
+				err = json.Unmarshal(msgBytes, &data)
+				if err != nil {
+					res <- err
+					return
+				}
+				if data.Error != "" {
+					res <- errors.New(data.Error)
+				} else {
+					res <- data.Data
+				}
 			}
 		}
 	}()
