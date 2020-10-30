@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"io/ioutil"
+	"strings"
 )
 
 type RunOptions struct {
@@ -110,6 +111,12 @@ func runRun(opts *RunOptions) error {
 
 	job, err := c.Create(obj)
 	if err != nil {
+		return err
+	}
+	if sp.Cron != nil {
+		jobUrl := fmt.Sprintf("%s/#/jobs/%s/detail?cluster=%s", strings.TrimRight(cfg.JobServerUrl, "/"), sp.Name, opts.Cluster)
+		fmt.Printf("this is a cron job, opening url %s in browser.", jobUrl)
+		err = utils.OpenInBrowser(jobUrl)
 		return err
 	}
 	outCh, err := c.Logs(job.Name, "", opts.Cluster, true)
